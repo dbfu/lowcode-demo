@@ -1,4 +1,5 @@
 import {create} from 'zustand';
+import {getComponentById} from '../utils/utils';
 
 export interface Component {
   /**
@@ -55,29 +56,6 @@ interface Action {
   setMode: (mode: State['mode']) => void;
 }
 
-/**
- * 根据 id 递归查找组件
- *
- * @param id 组件 id
- * @param components 组件数组
- * @returns 匹配的组件或 null
- */
-function getComponentById(
-  id: number | null,
-  components: Component[]
-): Component | null {
-  if (!id) return null;
-
-  for (const component of components) {
-    if (component.id == id) return component;
-    if (component.children && component.children.length > 0) {
-      const result = getComponentById(id, component.children);
-      if (result !== null) return result;
-    }
-  }
-  return null;
-}
-
 export const useComponets = create<State & Action>((set) => ({
   components: [],
   curComponent: null,
@@ -110,8 +88,17 @@ export const useComponets = create<State & Action>((set) => ({
       const component = getComponentById(componentId, state.components);
       if (component) {
         component.props = {...component.props, ...props};
+
+        if (componentId === state.curComponentId) {
+          return {
+            curComponent: component,
+            components: [...state.components],
+          };
+        }
+
         return {components: [...state.components]};
       }
+
       return {components: [...state.components]};
     }),
   setMode: (mode) => set({mode}),
