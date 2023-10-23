@@ -1,10 +1,10 @@
 import ComponentItem from '../../common/component-item';
 import { ItemType } from '../../item-type';
-import { useComponets } from '../../stores/components';
+import { useComponetsStore } from '../../stores/components';
 
 const Material: React.FC = () => {
 
-  const { addComponent } = useComponets();
+  const { addComponent } = useComponetsStore();
 
   /**
    * 拖拽结束，添加组件到画布
@@ -17,7 +17,6 @@ const Material: React.FC = () => {
       props: dropResult.props,
     }, dropResult.id);
   }
-
 
   return (
     <div className='flex p-[10px] gap-4 flex-wrap'>

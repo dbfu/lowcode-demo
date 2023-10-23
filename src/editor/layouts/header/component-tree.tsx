@@ -1,5 +1,5 @@
 import { Modal, Tree } from 'antd';
-import { useComponets } from '../../stores/components';
+import { useComponetsStore } from '../../stores/components';
 
 interface ComponentTreeProps {
   open: boolean,
@@ -8,7 +8,7 @@ interface ComponentTreeProps {
 
 const ComponentTree = ({ open, onCancel }: ComponentTreeProps) => {
 
-  const { components, setCurComponentId } = useComponets();
+  const { components, setCurComponentId } = useComponetsStore();
 
   function componentSelect([selectedKey]: any[]) {
     setCurComponentId(selectedKey);

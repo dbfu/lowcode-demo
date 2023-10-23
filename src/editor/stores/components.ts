@@ -56,7 +56,7 @@ interface Action {
   setMode: (mode: State['mode']) => void;
 }
 
-export const useComponets = create<State & Action>((set) => ({
+export const useComponetsStore = create<State & Action>((set) => ({
   components: [],
   curComponent: null,
   mode: 'edit',

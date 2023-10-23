@@ -2,16 +2,17 @@ import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import React from 'react';
 
-import { useComponets } from '../stores/components';
+import { useComponetsStore } from '../stores/components';
 import Header from './header';
 import Material from './material';
 import Setting from './setting';
 import EditStage from './stage/edit';
 import ProdStage from './stage/prod';
 
+
 const Layout: React.FC = () => {
 
-  const { mode } = useComponets();
+  const { mode } = useComponetsStore();
 
   return (
     <div className='h-[100vh] flex flex-col'>

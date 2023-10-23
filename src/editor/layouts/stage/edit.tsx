@@ -1,20 +1,20 @@
-import { Button } from 'antd';
 import React, { useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import SelectedMask from '../../common/selected-mask';
+import Button from '../../components/button';
 import Space from '../../components/space';
 import { ItemType } from '../../item-type';
-import { Component, useComponets } from '../../stores/components';
-
+import { Component, useComponetsStore } from '../../stores/components';
 
 const ComponentMap: { [key: string]: any } = {
   Button: Button,
   Space: Space,
 }
 
+
 const EditStage: React.FC = () => {
 
-  const { components, curComponentId, setCurComponentId } = useComponets();
+  const { components, curComponentId, setCurComponentId } = useComponetsStore();
 
   const selectedMaskRef = useRef<any>(null);
 
@@ -54,12 +54,39 @@ const EditStage: React.FC = () => {
     }
   }, []);
 
+  function formatProps(component: Component) {
+    const props = Object.keys(component.props || {}).reduce<any>((prev, cur) => {
+
+      if (typeof component.props[cur] === 'object') {
+        if (component.props[cur]?.type === 'static') {
+          prev[cur] = component.props[cur].value;
+        } else if (component.props[cur]?.type === 'variable') {
+
+          const variableName = component.props[cur].value;
+
+          prev[cur] = `\${${variableName}}`;
+        }
+      } else {
+        prev[cur] = component.props[cur];
+      }
+
+      return prev;
+
+    }, {});
+
+    return props;
+  }
+
   function renderComponents(components: Component[]): React.ReactNode {
     return components.map((component: Component) => {
 
       if (!ComponentMap[component.name]) {
         return null;
       }
+
+
+      const props = formatProps(component);
+
 
       if (ComponentMap[component.name]) {
         return React.createElement(
@@ -69,6 +96,8 @@ const EditStage: React.FC = () => {
             id: component.id,
             "data-component-id": component.id,
             ...component.props,
+            ...props,
+            useDrop,
           },
           component.props.children || renderComponents(component.children || [])
         )
@@ -100,12 +129,12 @@ const EditStage: React.FC = () => {
     }),
   }));
 
-  console.log(curComponentId, 'curComponentId');
-
 
   return (
     <div ref={drop} style={{ border: canDrop ? '1px solid blue' : 'none' }} className='p-[24px] h-[100%] stage'>
-      {renderComponents(components)}
+      <React.Suspense fallback="loading...">
+        {renderComponents(components)}
+      </React.Suspense>
       {curComponentId && (
         <SelectedMask
           componentId={curComponentId}

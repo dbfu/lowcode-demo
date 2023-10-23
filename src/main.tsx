@@ -7,6 +7,11 @@ import Layout from './editor/layouts'
 
 import './index.css'
 
+
+
+
+
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <DndProvider backend={HTML5Backend}>
     <Layout />

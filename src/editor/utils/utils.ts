@@ -1,3 +1,4 @@
+import React from 'react';
 import {Component} from '../stores/components';
 
 /**
@@ -22,3 +23,32 @@ export function getComponentById(
   }
   return null;
 }
+
+const fetchBundle = async (url: string, _requires: any) => {
+  return fetch(url)
+    .then((response) => response.text())
+    .then((data) => {
+      const exports = {};
+      const module = {exports};
+      const func = new Function('require', 'module', 'exports', data);
+      func(_requires, module, exports);
+      return module.exports;
+    });
+};
+
+// 远程加载组件
+export const remoteImport = async (url: string) => {
+  const external: any = {
+    react: React,
+  };
+
+  const _requires = (id: string) => {
+    return external[id];
+  };
+
+  const component = await fetchBundle(url, _requires).catch(() => ({
+    default: () => '组件加载失败',
+  }));
+
+  return {default: component};
+};

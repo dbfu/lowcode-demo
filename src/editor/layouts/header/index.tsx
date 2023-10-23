@@ -1,15 +1,18 @@
 import { Button, Space } from 'antd';
 import { useState } from 'react';
-import { useComponets } from '../../stores/components';
+import { useComponetsStore } from '../../stores/components';
+import { usePageDataStore } from '../../stores/page-data';
 import ComponentTree from './component-tree';
 import DefineVariable from './define-variable';
 
 const Header: React.FC = () => {
 
-  const { mode, setMode, setCurComponentId } = useComponets();
+  const { mode, setMode, setCurComponentId } = useComponetsStore();
+  const { resetData } = usePageDataStore();
 
   const [componentTreeVisible, setComponentTreeVisible] = useState(false);
   const [variableVisible, setVariableVisible] = useState(false);
+
 
   return (
     <div className='flex justify-end w-[100%] px-[24px]'>
@@ -26,8 +29,17 @@ const Header: React.FC = () => {
             </Button>
             <Button
               onClick={() => {
+                setVariableVisible(true);
+              }}
+              type='primary'
+            >
+              定义变量
+            </Button>
+            <Button
+              onClick={() => {
                 setMode('preview');
                 setCurComponentId(null);
+                resetData();
               }}
               type='primary'
             >
