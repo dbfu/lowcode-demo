@@ -24,31 +24,33 @@ export function getComponentById(
   return null;
 }
 
-const fetchBundle = async (url: string, _requires: any) => {
-  return fetch(url)
-    .then((response) => response.text())
-    .then((data) => {
-      const exports = {};
-      const module = {exports};
-      const func = new Function('require', 'module', 'exports', data);
-      func(_requires, module, exports);
-      return module.exports;
-    });
-};
 
-// 远程加载组件
-export const remoteImport = async (url: string) => {
-  const external: any = {
-    react: React,
-  };
+/**
+ * 加载远程组件
+ *
+ * @param url - 组件的URL地址
+ * @returns 组件的默认导出对象
+ */
+export async function loadRemoteComponent(url: string) {
+  const script = await fetch(url)
+    .then(res => res.text());
 
-  const _requires = (id: string) => {
-    return external[id];
-  };
+  const module = { exports: {} };
+  const exports = {};
 
-  const component = await fetchBundle(url, _requires).catch(() => ({
-    default: () => '组件加载失败',
-  }));
+  // 因为上面代码里用到了react，所以要把react注入进去，不然会报错
+  const require = (id: string) => {
+    if (id === 'react') {
+      return React;
+    }
+  }
 
-  return {default: component};
-};
+  const process = { env: { NODE_ENV: 'production' } };
+
+  const func = new Function('module', 'exports', 'require', 'process', script);
+
+  func(module, exports, require, process);
+
+  return { default: module.exports } as any;
+}
+

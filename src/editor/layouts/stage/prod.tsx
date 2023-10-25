@@ -5,10 +5,14 @@ import { Component, useComponetsStore } from '../../stores/components';
 import { usePageDataStore } from '../../stores/page-data';
 import { useVariablesStore } from '../../stores/variable';
 import { componentEventMap } from '../setting/event';
+import { loadRemoteComponent } from '../../utils/utils';
+import { ItemType } from '../../item-type';
 
 const ComponentMap: { [key: string]: any } = {
   Button: Button,
   Space: Space,
+  [ItemType.RemoteComponent]:
+    React.lazy(() => loadRemoteComponent('https://cdn.jsdelivr.net/npm/dbfu-remote-component@1.0.5/dist/bundle.umd.js')),
 }
 
 const ProdStage: React.FC = () => {
@@ -130,7 +134,9 @@ const ProdStage: React.FC = () => {
 
   return (
     <div>
-      {renderComponents(components)}
+      <React.Suspense fallback="loading...">
+        {renderComponents(components)}
+      </React.Suspense>
     </div>
   );
 }
