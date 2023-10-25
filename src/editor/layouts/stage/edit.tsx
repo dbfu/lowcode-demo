@@ -5,12 +5,14 @@ import Button from '../../components/button';
 import Space from '../../components/space';
 import { ItemType } from '../../item-type';
 import { Component, useComponetsStore } from '../../stores/components';
+import { loadRemoteComponent } from '../../utils/utils';
 
 const ComponentMap: { [key: string]: any } = {
   Button: Button,
   Space: Space,
+  [ItemType.RemoteComponent]:
+    React.lazy(() => loadRemoteComponent('https://cdn.jsdelivr.net/npm/dbfu-remote-component@1.0.5/dist/bundle.umd.js')),
 }
-
 
 const EditStage: React.FC = () => {
 
@@ -113,6 +115,7 @@ const EditStage: React.FC = () => {
     accept: [
       ItemType.Space,
       ItemType.Button,
+      ItemType.RemoteComponent,
     ],
     drop: (_, monitor) => {
       const didDrop = monitor.didDrop()
