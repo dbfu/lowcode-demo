@@ -1,4 +1,4 @@
-import { Form, Input, Select, TreeSelect } from 'antd';
+import { Form, Select, TreeSelect } from 'antd';
 import { useComponetsStore } from '../../../../stores/components';
 import { ItemType } from '../../../../item-type';
 import { useMemo } from 'react';
