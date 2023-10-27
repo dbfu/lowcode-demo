@@ -25,6 +25,7 @@ interface State {
   curComponentId?: number | null;
   curComponent: Component | null;
   mode: 'edit' | 'preview';
+  editType: 'page' | 'event';
 }
 
 interface Action {
@@ -54,12 +55,19 @@ interface Action {
    * @returns
    */
   setMode: (mode: State['mode']) => void;
+  /**
+   *  设置编辑类型
+   * @param editType
+   * @returns
+   */
+  setEditType: (editType: State['editType']) => void;
 }
 
 export const useComponetsStore = create<State & Action>((set) => ({
   components: [],
   curComponent: null,
   mode: 'edit',
+  editType: 'page',
   addComponent: (component, parentId) =>
     set((state) => {
       // 如果有上级id，把当前组件添加到父组件的子组件中
@@ -102,4 +110,5 @@ export const useComponetsStore = create<State & Action>((set) => ({
       return {components: [...state.components]};
     }),
   setMode: (mode) => set({mode}),
+  setEditType: (editType) => set({editType}),
 }));

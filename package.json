@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
+    "@antv/g6": "^4.8.23",
+    "ahooks": "^3.7.8",
     "allotment": "^1.19.3",
     "antd": "^5.10.0",
+    "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
@@ -20,6 +23,7 @@
     "zustand": "^4.4.3"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.10",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
