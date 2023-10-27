@@ -1,4 +1,4 @@
-import { Button, Space } from 'antd';
+import { Button, Space, Radio } from 'antd';
 import { useState } from 'react';
 import { useComponetsStore } from '../../stores/components';
 import { usePageDataStore } from '../../stores/page-data';
@@ -15,47 +15,50 @@ const Header: React.FC = () => {
 
 
   return (
-    <div className='flex justify-end w-[100%] px-[24px]'>
-      <Space>
-        {mode === 'edit' && (
-          <>
+    <div className='w-[100%] h-[100%]'>
+      <div className='flex justify-between px-[24px] items-center h-[100%]'>
+        <div className='flex-1'>lowcode</div>
+        <Space className='flex-1 flex justify-end'>
+          {mode === 'edit' && (
+            <>
+              <Button
+                onClick={() => {
+                  setComponentTreeVisible(true);
+                }}
+                type='primary'
+              >
+                查看大纲
+              </Button>
+              <Button
+                onClick={() => {
+                  setVariableVisible(true);
+                }}
+                type='primary'
+              >
+                定义变量
+              </Button>
+              <Button
+                onClick={() => {
+                  setMode('preview');
+                  setCurComponentId(null);
+                  resetData();
+                }}
+                type='primary'
+              >
+                预览
+              </Button>
+            </>
+          )}
+          {mode === 'preview' && (
             <Button
-              onClick={() => {
-                setComponentTreeVisible(true);
-              }}
+              onClick={() => { setMode('edit') }}
               type='primary'
             >
-              查看大纲
+              退出预览
             </Button>
-            <Button
-              onClick={() => {
-                setVariableVisible(true);
-              }}
-              type='primary'
-            >
-              定义变量
-            </Button>
-            <Button
-              onClick={() => {
-                setMode('preview');
-                setCurComponentId(null);
-                resetData();
-              }}
-              type='primary'
-            >
-              预览
-            </Button>
-          </>
-        )}
-        {mode === 'preview' && (
-          <Button
-            onClick={() => { setMode('edit') }}
-            type='primary'
-          >
-            退出预览
-          </Button>
-        )}
-      </Space>
+          )}
+        </Space>
+      </div>
       <ComponentTree
         open={componentTreeVisible}
         onCancel={() => { setComponentTreeVisible(false) }}
