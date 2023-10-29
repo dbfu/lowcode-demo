@@ -1,35 +1,10 @@
 import { message } from 'antd';
 import React, { useRef } from 'react';
-import Button from '../../components/button';
-import FormItem from '../../components/form-item';
-import Form from '../../components/form/prod';
-import Modal from '../../components/modal/prod';
-import SearchFormItem from '../../components/search-form-item';
-import SearchForm from '../../components/search-form/prod';
-import Space from '../../components/space/prod';
-import TableColumn from '../../components/table-column';
-import Table from '../../components/table/prod';
-import { ItemType } from '../../item-type';
 import { useComponentConfigStore } from '../../stores/component-config';
 import { Component, useComponetsStore } from '../../stores/components';
 import { usePageDataStore } from '../../stores/page-data';
 import { useVariablesStore } from '../../stores/variable';
-import { loadRemoteComponent } from '../../utils/utils';
 import { Node } from '../flow-event/data';
-
-const ComponentMap: { [key: string]: any } = {
-  Button: Button,
-  Space: Space,
-  [ItemType.RemoteComponent]:
-    React.lazy(() => loadRemoteComponent('https://cdn.jsdelivr.net/npm/dbfu-remote-component@1.0.5/dist/bundle.umd.js')),
-  [ItemType.Table]: Table,
-  [ItemType.TableColumn]: TableColumn,
-  [ItemType.SearchForm]: SearchForm,
-  [ItemType.SearchFormItem]: SearchFormItem,
-  [ItemType.Modal]: Modal,
-  [ItemType.Form]: Form,
-  [ItemType.FormItem]: FormItem,
-}
 
 
 const ProdStage: React.FC = () => {
