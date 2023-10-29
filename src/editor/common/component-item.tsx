@@ -1,5 +1,5 @@
 import { useDrag } from 'react-dnd';
-import { ItemType } from '../item-type';
+import { useComponentConfigStore } from '../stores/component-config';
 
 interface ComponentItemProps {
   // 组件名称
@@ -10,7 +10,10 @@ interface ComponentItemProps {
   onDragEnd: any,
 }
 
+
 const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDragEnd }) => {
+
+  const { componentConfig } = useComponentConfigStore();
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: name,
@@ -19,9 +22,21 @@ const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDrag
 
       if (!dropResult) return;
 
+      let props: any = {};
+
+      const defaultProps = componentConfig?.[name]?.defaultProps;
+
+      if (defaultProps) {
+        if (typeof defaultProps === 'function') {
+          props = defaultProps();
+        } else {
+          props = defaultProps || {};
+        }
+      }
+
       onDragEnd && onDragEnd({
         name,
-        props: name === ItemType.Button ? { text: '按钮' } : {},
+        props,
         ...dropResult,
       });
     },
@@ -29,7 +44,7 @@ const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDrag
       isDragging: monitor.isDragging(),
       handlerId: monitor.getHandlerId(),
     }),
-  }));
+  }), [name, componentConfig]);
 
   const opacity = isDragging ? 0.4 : 1;
 

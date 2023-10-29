@@ -1,24 +1,15 @@
-import { Form, Input, Select, TreeSelect } from 'antd';
-import { useComponetsStore } from '../../../../stores/components';
-import { ItemType } from '../../../../item-type';
+import { Form, Select, TreeSelect } from 'antd';
 import { useMemo } from 'react';
+import { useComponentConfigStore } from '../../../../stores/component-config';
+import { useComponetsStore } from '../../../../stores/components';
 import { getComponentById } from '../../../../utils/utils';
 
 const FormItem = Form.Item;
 
-const componentMethodsMap = {
-  [ItemType.Button]: [{
-    name: 'startLoading',
-    label: '开始loading',
-  }, {
-    name: 'endLoading',
-    label: '结束loading',
-  }],
-}
-
 const ComponentMethodSetting = ({ values }: { values: any }) => {
 
   const { components } = useComponetsStore();
+  const { componentConfig } = useComponentConfigStore();
 
   const component = useMemo(() => {
     if (values?.config?.componentId) {
@@ -38,12 +29,12 @@ const ComponentMethodSetting = ({ values }: { values: any }) => {
           }}
         />
       </FormItem>
-      {componentMethodsMap[component?.name || ''] && (
+      {(componentConfig[component?.name || '']?.methods) && (
         <FormItem label="方法" name={['config', 'method']}>
           <Select
             style={{ width: 240 }}
-            options={componentMethodsMap[component?.name || ''].map(
-              method => ({ label: method.label, value: method.name })
+            options={componentConfig[component?.name || ''].methods.map(
+              (method: any) => ({ label: method.desc, value: method.name })
             )}
           />
         </FormItem>

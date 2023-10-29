@@ -1,20 +1,15 @@
 import { Button, Collapse, Drawer } from 'antd';
 import { useRef, useState } from 'react';
-import { ItemType } from '../../item-type';
 import { useComponetsStore } from '../../stores/components';
 
+import { useComponentConfigStore } from '../../stores/component-config';
 import FlowEvent from '../flow-event';
 
-export const componentEventMap = {
-  [ItemType.Button]: [{
-    name: 'onClick',
-    label: '点击事件',
-  }],
-}
 
 const ComponentEvent = () => {
 
   const { curComponent, curComponentId, updateComponentProps } = useComponetsStore();
+  const { componentConfig } = useComponentConfigStore();
 
   const [open, setOpen] = useState(false);
   const [eventName, setEventName] = useState('');
@@ -39,14 +34,14 @@ const ComponentEvent = () => {
 
   return (
     <div className='px-[12px]'>
-      {(componentEventMap[curComponent.name] || []).map(setting => {
+      {(componentConfig[curComponent.name]?.events || []).map((event: any) => {
         return (
-          <Collapse key={setting.name} defaultActiveKey={setting.name}>
-            <Collapse.Panel header={setting.label} key={setting.name}>
+          <Collapse key={event.name} defaultActiveKey={event.name}>
+            <Collapse.Panel header={event.desc} key={event.name}>
               <div className='text-center'>
                 <Button
                   onClick={() => {
-                    setEventName(setting.name);
+                    setEventName(event.name);
                     setOpen(true);
                   }}
                   type='primary'

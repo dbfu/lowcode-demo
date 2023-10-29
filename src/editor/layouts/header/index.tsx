@@ -1,4 +1,4 @@
-import { Button, Space, Radio } from 'antd';
+import { Button, Space } from 'antd';
 import { useState } from 'react';
 import { useComponetsStore } from '../../stores/components';
 import { usePageDataStore } from '../../stores/page-data';
@@ -16,7 +16,7 @@ const Header: React.FC = () => {
 
   return (
     <div className='w-[100%] h-[100%]'>
-      <div className='flex justify-between px-[24px] items-center h-[100%]'>
+      <div className='flex justify-between px-[24px] items-center h-[50px]'>
         <div className='flex-1'>lowcode</div>
         <Space className='flex-1 flex justify-end'>
           {mode === 'edit' && (
