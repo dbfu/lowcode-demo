@@ -11,12 +11,13 @@ interface Props {
   id: number;
   // 当前组件的尺寸
   size: SpaceSize;
+  direction: 'horizontal' | 'vertical';
 }
 
-const Space: React.FC<Props> = ({ children, id, size }) => {
+const Space: React.FC<Props> = ({ children, id, size, direction }) => {
 
   const [{ canDrop }, drop] = useDrop(() => ({
-    accept: [ItemType.Space, ItemType.Button],
+    accept: [ItemType.Space, ItemType.Button, ItemType.Table, ItemType.SearchForm],
     drop: (_, monitor) => {
       const didDrop = monitor.didDrop()
       if (didDrop) {
@@ -35,14 +36,26 @@ const Space: React.FC<Props> = ({ children, id, size }) => {
 
   if (!children?.length) {
     return (
-      <AntdSpace data-component-id={id} ref={drop} className='p-[16px]' style={{ border: canDrop ? '1px solid #ccc' : 'none' }}>
+      <AntdSpace
+        data-component-id={id}
+        ref={drop}
+        className='p-[16px]'
+        style={{ border: canDrop ? '1px solid #ccc' : 'none', width: direction === 'vertical' ? '100%' : '' }}
+      >
         暂无内容
       </AntdSpace>
     )
   }
 
   return (
-    <AntdSpace size={size} data-component-id={id} ref={drop} className='p-[16px]' style={{ border: canDrop ? '1px solid #ccc' : 'none' }}>
+    <AntdSpace
+      direction={direction}
+      size={size}
+      data-component-id={id}
+      ref={drop}
+      className='p-[16px]'
+      style={{ border: canDrop ? '1px solid #ccc' : 'none', width: direction === 'vertical' ? '100%' : '' }}
+    >
       {children}
     </AntdSpace>
   )

@@ -1,22 +1,32 @@
 import React, { useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import SelectedMask from '../../common/selected-mask';
-import Button from '../../components/button';
-import Space from '../../components/space';
+import FormItem from '../../components/form-item';
+import Form from '../../components/form/dev';
+import Modal from '../../components/modal/dev';
+import SearchFormItem from '../../components/search-form-item';
+import SearchForm from '../../components/search-form/dev';
+import TableColumn from '../../components/table-column';
 import { ItemType } from '../../item-type';
+import { useComponentConfigStore } from '../../stores/component-config';
 import { Component, useComponetsStore } from '../../stores/components';
 import { loadRemoteComponent } from '../../utils/utils';
 
 const ComponentMap: { [key: string]: any } = {
-  Button: Button,
-  Space: Space,
   [ItemType.RemoteComponent]:
     React.lazy(() => loadRemoteComponent('https://cdn.jsdelivr.net/npm/dbfu-remote-component@1.0.5/dist/bundle.umd.js')),
+  [ItemType.TableColumn]: TableColumn,
+  [ItemType.SearchForm]: SearchForm,
+  [ItemType.SearchFormItem]: SearchFormItem,
+  [ItemType.Modal]: Modal,
+  [ItemType.Form]: Form,
+  [ItemType.FormItem]: FormItem
 }
 
 const EditStage: React.FC = () => {
 
   const { components, curComponentId, setCurComponentId } = useComponetsStore();
+  const { componentConfig } = useComponentConfigStore();
 
   const selectedMaskRef = useRef<any>(null);
 
@@ -82,30 +92,23 @@ const EditStage: React.FC = () => {
   function renderComponents(components: Component[]): React.ReactNode {
     return components.map((component: Component) => {
 
-      if (!ComponentMap[component.name]) {
+      if (!componentConfig?.[component.name]?.dev) {
         return null;
       }
 
-
       const props = formatProps(component);
 
-
-      if (ComponentMap[component.name]) {
-        return React.createElement(
-          ComponentMap[component.name],
-          {
-            key: component.id,
-            id: component.id,
-            "data-component-id": component.id,
-            ...component.props,
-            ...props,
-            useDrop,
-          },
-          component.props.children || renderComponents(component.children || [])
-        )
-      }
-
-      return null;
+      return React.createElement(
+        componentConfig[component.name]?.dev,
+        {
+          key: component.id,
+          id: component.id,
+          "data-component-id": component.id,
+          ...component.props,
+          ...props,
+        },
+        renderComponents(component.children || [])
+      )
     })
   }
 
@@ -116,6 +119,10 @@ const EditStage: React.FC = () => {
       ItemType.Space,
       ItemType.Button,
       ItemType.RemoteComponent,
+      ItemType.Table,
+      ItemType.SearchForm,
+      ItemType.Modal,
+      ItemType.Form,
     ],
     drop: (_, monitor) => {
       const didDrop = monitor.didDrop()
@@ -131,6 +138,9 @@ const EditStage: React.FC = () => {
       canDrop: monitor.canDrop(),
     }),
   }));
+
+
+  console.log(components, 'components');
 
 
   return (

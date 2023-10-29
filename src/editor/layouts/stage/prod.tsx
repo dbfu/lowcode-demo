@@ -1,12 +1,20 @@
-import { Space, message } from 'antd';
+import { message } from 'antd';
 import React, { useRef } from 'react';
 import Button from '../../components/button';
+import FormItem from '../../components/form-item';
+import Form from '../../components/form/prod';
+import Modal from '../../components/modal/prod';
+import SearchFormItem from '../../components/search-form-item';
+import SearchForm from '../../components/search-form/prod';
+import Space from '../../components/space/prod';
+import TableColumn from '../../components/table-column';
+import Table from '../../components/table/prod';
+import { ItemType } from '../../item-type';
+import { useComponentConfigStore } from '../../stores/component-config';
 import { Component, useComponetsStore } from '../../stores/components';
 import { usePageDataStore } from '../../stores/page-data';
 import { useVariablesStore } from '../../stores/variable';
-import { componentEventMap } from '../setting/event';
 import { loadRemoteComponent } from '../../utils/utils';
-import { ItemType } from '../../item-type';
 import { Node } from '../flow-event/data';
 
 const ComponentMap: { [key: string]: any } = {
@@ -14,6 +22,13 @@ const ComponentMap: { [key: string]: any } = {
   Space: Space,
   [ItemType.RemoteComponent]:
     React.lazy(() => loadRemoteComponent('https://cdn.jsdelivr.net/npm/dbfu-remote-component@1.0.5/dist/bundle.umd.js')),
+  [ItemType.Table]: Table,
+  [ItemType.TableColumn]: TableColumn,
+  [ItemType.SearchForm]: SearchForm,
+  [ItemType.SearchFormItem]: SearchFormItem,
+  [ItemType.Modal]: Modal,
+  [ItemType.Form]: Form,
+  [ItemType.FormItem]: FormItem,
 }
 
 
@@ -22,6 +37,7 @@ const ProdStage: React.FC = () => {
   const { components } = useComponetsStore();
   const { variables } = useVariablesStore();
   const { setData, data } = usePageDataStore();
+  const { componentConfig } = useComponentConfigStore();
 
   const componentRefs = useRef<any>({});
 
@@ -86,13 +102,13 @@ const ProdStage: React.FC = () => {
   }
 
   // 组件方法
-  async function componentMethodHandle(item: any, actionConfig: any) {
+  async function componentMethodHandle(item: any, actionConfig: any, params: any) {
     const { componentId, method } = actionConfig || {};
 
     if (componentId && actionConfig) {
       try {
         // 执行组件方法
-        await componentRefs.current[componentId][method]();
+        await componentRefs.current[componentId][method](params);
 
         // 执行成功后，执行后续成功success事件
         const nodes = item.children?.filter((o: any) => o.eventKey === 'success')
@@ -142,8 +158,6 @@ const ProdStage: React.FC = () => {
     return func(ctx)
   }
 
-
-
   // 获取组件引用
   function getComponentRef(componentId: number) {
     return componentRefs.current[componentId];
@@ -178,7 +192,7 @@ const ProdStage: React.FC = () => {
    * 执行事件流
    * @param nodes 事件流
    */
-  function execEventFlow(nodes: Node[] = []) {
+  function execEventFlow(nodes: Node[] = [], params?: any) {
 
     if (!nodes.length) return;
 
@@ -186,7 +200,7 @@ const ProdStage: React.FC = () => {
       // 判断是否是动作节点，如果是动作节点并且条件结果不为false，则执行动作
       if (item.type === 'action' && item.conditionResult !== false) {
         // 根据不同动作类型执行不同动作
-        await eventHandleMap[item.config.type](item, item.config.config);
+        await eventHandleMap[item.config.type](item, item.config.config, params);
       } else if (item.type === 'condition') {
         // 如果是条件节点，执行条件脚本，把结果注入到子节点conditionResult属性中
         const conditionResult = (item.config || []).reduce((prev: any, cur: any) => {
@@ -199,10 +213,10 @@ const ProdStage: React.FC = () => {
           c.conditionResult = !!conditionResult[c.conditionId];
         });
         // 递归执行子节点事件流
-        execEventFlow(item.children);
+        execEventFlow(item.children, params);
       } else if (item.type === 'event') {
         // 如果是事件节点，执行事件子节点事件流
-        execEventFlow(item.children);
+        execEventFlow(item.children, params);
       }
     })
   }
@@ -212,24 +226,28 @@ const ProdStage: React.FC = () => {
   function handleEvent(component: Component) {
     const props: any = {};
 
-    if (componentEventMap[component.name]?.length) {
-      componentEventMap[component.name].forEach((event) => {
-        const eventConfig = component.props[event.name];
+    const events = componentConfig?.[component.name]?.events;
 
-        if (eventConfig) {
-          props[event.name] = () => {
-            eventConfig.children && execEventFlow(eventConfig.children);
-          }
-        }
-      })
+    if (!events?.length) {
+      return props;
     }
+
+    events.forEach((event: any) => {
+      const eventConfig = component.props[event.name];
+
+      if (eventConfig) {
+        props[event.name] = (params: any) => {
+          eventConfig.children && execEventFlow(eventConfig.children, params);
+        }
+      }
+    })
     return props;
   }
 
   function renderComponents(components: Component[]): React.ReactNode {
     return components.map((component: Component) => {
 
-      if (!ComponentMap[component.name]) {
+      if (!componentConfig[component.name]?.prod) {
         return null;
       }
 
@@ -237,27 +255,24 @@ const ProdStage: React.FC = () => {
 
       props = { ...props, ...handleEvent(component) };
 
-      if (ComponentMap[component.name]) {
-        return React.createElement(
-          ComponentMap[component.name],
-          {
-            key: component.id,
-            id: component.id,
-            ref: (ref) => { componentRefs.current[component.id] = ref; },
-            ...component.props,
-            ...props,
-          },
-          component.props.children || renderComponents(component.children || [])
-        )
-      }
+      return React.createElement(
+        componentConfig[component.name]?.prod,
+        {
+          key: component.id,
+          id: component.id,
+          ref: (ref) => { componentRefs.current[component.id] = ref; },
+          ...component.props,
+          ...props,
+        },
+        component.props.children || renderComponents(component.children || [])
+      );
 
-      return null;
     })
   }
 
 
   return (
-    <div>
+    <div className='p-[24px]'>
       <React.Suspense fallback="loading...">
         {renderComponents(components)}
       </React.Suspense>

@@ -1,48 +1,22 @@
 import { Form, Input, Select } from 'antd';
 import { useEffect } from 'react';
 import SettingFormItemInput from '../../common/setting-form-item/input';
-import { ItemType } from '../../item-type';
+import { useComponentConfigStore } from '../../stores/component-config';
 import { useComponetsStore } from '../../stores/components';
 
-const componentSettingMap = {
-  [ItemType.Button]: [{
-    name: 'type',
-    label: '按钮类型',
-    type: 'select',
-    options: [{ label: '主按钮', value: 'primary' }, { label: '次按钮', value: 'default' }],
-  }, {
-    name: 'text',
-    label: '文本',
-    type: 'input',
-  }],
-  [ItemType.Space]: [
-    {
-      name: 'size',
-      label: '间距大小',
-      type: 'select',
-      options: [
-        { label: '大', value: 'large' },
-        { label: '中', value: 'middle' },
-        { label: '小', value: 'small' },
-      ],
-    },
-  ],
-  [ItemType.RemoteComponent]: [
-    {
-      name: 'text',
-      label: '文本',
-      type: 'input',
-    }
-  ],
-}
+
+
 
 const ComponentAttr = () => {
 
   const [form] = Form.useForm();
 
   const { curComponentId, curComponent, updateComponentProps } = useComponetsStore();
+  const { componentConfig } = useComponentConfigStore();
 
   useEffect(() => {
+    console.log(curComponent);
+
     // 初始化表单
     form.setFieldsValue(curComponent?.props);
   }, [curComponent])
@@ -85,7 +59,10 @@ const ComponentAttr = () => {
       <Form.Item label="组件id">
         <Input value={curComponent.id} disabled />
       </Form.Item>
-      {(componentSettingMap[curComponent?.name] || []).map(setting => {
+      <Form.Item label="组件名称">
+        <Input value={curComponent.name} disabled />
+      </Form.Item>
+      {((componentConfig[curComponent?.name])?.setter || []).map((setting: any) => {
         return (
           <Form.Item key={setting.name} name={setting.name} label={setting.label}>
             {renderFormElememt(setting)}
