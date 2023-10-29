@@ -1,27 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import SelectedMask from '../../common/selected-mask';
-import FormItem from '../../components/form-item';
-import Form from '../../components/form/dev';
-import Modal from '../../components/modal/dev';
-import SearchFormItem from '../../components/search-form-item';
-import SearchForm from '../../components/search-form/dev';
-import TableColumn from '../../components/table-column';
 import { ItemType } from '../../item-type';
 import { useComponentConfigStore } from '../../stores/component-config';
 import { Component, useComponetsStore } from '../../stores/components';
-import { loadRemoteComponent } from '../../utils/utils';
 
-const ComponentMap: { [key: string]: any } = {
-  [ItemType.RemoteComponent]:
-    React.lazy(() => loadRemoteComponent('https://cdn.jsdelivr.net/npm/dbfu-remote-component@1.0.5/dist/bundle.umd.js')),
-  [ItemType.TableColumn]: TableColumn,
-  [ItemType.SearchForm]: SearchForm,
-  [ItemType.SearchFormItem]: SearchFormItem,
-  [ItemType.Modal]: Modal,
-  [ItemType.Form]: Form,
-  [ItemType.FormItem]: FormItem
-}
 
 const EditStage: React.FC = () => {
 
