@@ -1,10 +1,11 @@
 import {Context} from '../../interface';
+import {ItemType} from '../../item-type';
 import Dev from './dev';
 import Prod from './prod';
 
 export default (ctx: Context) => {
-  ctx.registerComponent('Modal', {
-    name: 'Modal',
+  ctx.registerComponent(ItemType.Modal, {
+    name: ItemType.Modal,
     desc: '弹框',
     defaultProps: () => {
       return {
@@ -24,6 +25,10 @@ export default (ctx: Context) => {
       {
         name: 'onOk',
         desc: '确定',
+      },
+      {
+        name: 'onCancel',
+        desc: '取消',
       },
     ],
     methods: [
@@ -45,5 +50,6 @@ export default (ctx: Context) => {
       },
     ],
     order: 3,
+    allowDrag: [ItemType.Page, ItemType.Space],
   });
 };

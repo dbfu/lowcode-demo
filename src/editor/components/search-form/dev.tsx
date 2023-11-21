@@ -1,37 +1,14 @@
 import { Button, Col, Form, Input, Row, Space } from 'antd';
 import React, { useMemo } from 'react';
-import { useDrop } from 'react-dnd';
-import { ItemType } from '../../item-type';
+import { useDrop } from '../../hooks/use-drop';
+import { CommonComponentProps } from '../../interface';
 
 
-interface Props {
-  id: number;
-  children?: any[];
-  onSearch?: (values: any) => void;
-}
-
-const SearchForm: React.FC<Props> = ({ id, children, onSearch }) => {
+function SearchForm({ _id, _name, children, onSearch }: CommonComponentProps) {
 
   const [form] = Form.useForm();
 
-  const [{ canDrop }, drop] = useDrop(() => ({
-    accept: [ItemType.SearchFormItem],
-    drop: (_, monitor) => {
-      const didDrop = monitor.didDrop()
-      if (didDrop) {
-        return;
-      }
-
-      return {
-        id,
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  }));
-
+  const { canDrop, drop } = useDrop(_id, _name);
 
   const searchItems = useMemo(() => {
     return React.Children.map(children, (item: any) => {
@@ -42,7 +19,7 @@ const SearchForm: React.FC<Props> = ({ id, children, onSearch }) => {
         label: item.props?.label,
         name: item.props?.name,
         type: item.props?.type,
-        id: item.props?.id,
+        id: item.props?._id,
       }
     });
   }, [children]);
@@ -55,7 +32,7 @@ const SearchForm: React.FC<Props> = ({ id, children, onSearch }) => {
   if (!children?.length) {
     return (
       <div
-        data-component-id={id}
+        data-component-id={_id}
         ref={drop}
         className='p-[16px] flex justify-center'
         style={{ border: canDrop ? '1px solid #ccc' : 'none' }}
@@ -67,7 +44,7 @@ const SearchForm: React.FC<Props> = ({ id, children, onSearch }) => {
 
 
   return (
-    <div className='w-[100%]' ref={drop} data-component-id={id} style={{ border: canDrop ? '1px solid #ccc' : 'none' }}>
+    <div className='w-[100%]' ref={drop} data-component-id={_id} style={{ border: canDrop ? '1px solid #ccc' : 'none' }}>
       <Form form={form} onFinish={search}>
         <Row gutter={20}>
           {searchItems.map((item: any) => {

@@ -21,19 +21,18 @@ const ComponentMethodSetting = ({ values }: { values: any }) => {
     <>
       <FormItem label="组件" name={['config', 'componentId']}>
         <TreeSelect
-          style={{ width: 240 }}
           treeData={components}
           fieldNames={{
-            label: 'name',
+            label: 'desc',
             value: 'id',
           }}
+          treeDefaultExpandAll
         />
       </FormItem>
       {(componentConfig[component?.name || '']?.methods) && (
         <FormItem label="方法" name={['config', 'method']}>
           <Select
-            style={{ width: 240 }}
-            options={componentConfig[component?.name || ''].methods.map(
+            options={(componentConfig[component?.name || '']?.methods || []).map(
               (method: any) => ({ label: method.desc, value: method.name })
             )}
           />

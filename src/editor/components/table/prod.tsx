@@ -1,15 +1,12 @@
-import { Table as AntdTable } from 'antd';
+import { Table as AntdTable, Divider, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import axios from 'axios';
+import { CommonComponentProps } from '../../interface';
 
-interface Props {
-  url: string;
-  children: any;
-}
 
-const Table = ({ url, children }: Props, ref: any) => {
+function Table({ url, children, _execEventFlow }: CommonComponentProps, ref: any) {
 
   const [data, setData] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useState({});
@@ -41,12 +38,36 @@ const Table = ({ url, children }: Props, ref: any) => {
 
   const columns: any = useMemo(() => {
     return React.Children.map(children, (item: any) => {
-
       if (item?.props?.type === 'date') {
         return {
           title: item.props?.title,
           dataIndex: item.props?.dataIndex,
-          render: (value: any) => dayjs(value).format('YYYY-MM-DD')
+          render: (value: any) => value ? dayjs(value).format('YYYY-MM-DD') : null,
+        }
+      } else if (item?.props?.type === 'option') {
+        return {
+          title: item.props?.title,
+          dataIndex: item.props?.dataIndex,
+          render: (_: any, record: any) => {
+            return (
+              <Space
+                size={0}
+                split={<Divider type='vertical' />}
+              >
+                {item.props.options?.map((option: any) => {
+                  return (
+                    <a
+                      className='select-none'
+                      onClick={() => { _execEventFlow(option?.event?.children, record, record) }}
+                      key={option.label}
+                    >
+                      {option.label}
+                    </a>
+                  )
+                })}
+              </Space>
+            )
+          },
         }
       }
 

@@ -1,6 +1,5 @@
 
-import { DeleteOutlined } from '@ant-design/icons';
-import { Dropdown, Popconfirm, Space } from 'antd';
+import { Dropdown, Space } from 'antd';
 import {
   forwardRef,
   useEffect,
@@ -18,9 +17,11 @@ interface Props {
   containerClassName: string,
   // 相对容器class
   offsetContainerClassName: string
+  // 组件id
+  componentId: number;
 }
 
-function SelectedMask({ containerClassName, offsetContainerClassName }: Props, ref: any) {
+function HoverMask({ containerClassName, offsetContainerClassName, componentId }: Props, ref: any) {
 
   const [position, setPosition] = useState({
     left: 0,
@@ -31,7 +32,7 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
     toolsLeft: 0,
   });
 
-  const { curComponent, curComponentId, components, setCurComponentId, deleteComponent } = useComponetsStore();
+  const { components, setCurComponentId } = useComponetsStore();
 
   const { componentConfig } = useComponentConfigStore();
 
@@ -42,15 +43,15 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
 
   useEffect(() => {
     updatePosition();
-  }, [curComponentId]);
+  }, [componentId]);
 
   function updatePosition() {
-    if (!curComponentId) return;
+    if (!componentId) return;
 
     const container = document.querySelector(`.${offsetContainerClassName}`);
     if (!container) return;
 
-    const node = document.querySelector(`[data-component-id="${curComponentId}"]`);
+    const node = document.querySelector(`[data-component-id="${componentId}"]`);
 
     if (!node) return;
 
@@ -77,11 +78,15 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
     });
   }
 
-  // 获取当前组件的父组件
+  const curComponent = useMemo(() => {
+    return getComponentById(componentId, components);
+  }, [componentId]);
+
+
   const parentComponents = useMemo(() => {
 
     const parentComponents = [];
-    let component = curComponent;
+    let component = getComponentById(componentId, components);
 
     while (component?.parentId) {
       component = getComponentById(component.parentId, components);
@@ -93,11 +98,6 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
   }, [curComponent]);
 
 
-  function deleteHandle() {
-    deleteComponent(curComponentId);
-    setCurComponentId(null);
-  }
-
 
   return createPortal((
     <>
@@ -106,12 +106,12 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
           position: "absolute",
           left: position.left,
           top: position.top,
-          backgroundColor: "rgba(66, 133, 244, 0.2)",
-          border: "1px solid rgb(66, 133, 244)",
+          backgroundColor: "rgba(66, 133, 244, 0.04)",
+          border: "1px dashed rgb(66, 133, 244)",
           pointerEvents: "none",
           width: position.width,
           height: position.height,
-          zIndex: 10,
+          zIndex: 12,
           borderRadius: 4,
           boxSizing: 'border-box',
         }}
@@ -123,7 +123,7 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
           top: position.toolsTop,
           fontSize: "14px",
           color: "#ff4d4f",
-          zIndex: 11,
+          zIndex: 13,
           display: (!position.width || position.width < 10) ? "none" : "inline",
           transform: 'translate(-100%, -100%)',
         }}
@@ -133,7 +133,7 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
             menu={{
               items: parentComponents.map(item => ({
                 key: item?.id || '',
-                label: item?.desc || item?.name,
+                label: item?.name,
               })),
               onClick: ({ key }) => {
                 setCurComponentId(Number(key));
@@ -141,6 +141,7 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
             }}
             placement='bottomRight'
             disabled={parentComponents.length === 0}
+            getPopupContainer={node => node.parentElement!}
           >
             <div
               style={{
@@ -155,25 +156,6 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
               {componentConfig[curComponent?.name || '']?.desc}
             </div>
           </Dropdown>
-          {+(curComponentId || 0) !== 1 && (
-            <div style={{ padding: '0 8px', backgroundColor: '#1890ff' }}>
-              <Popconfirm
-                title="确认删除？"
-                overlayClassName='min-w-130px'
-                okText={<div className="delete-confirm-btn" style={{ padding: "0 7px" }}>确认</div>}
-                cancelText={<div className="delete-confirm-btn" style={{ padding: "0 7px" }}>取消</div>}
-                onConfirm={deleteHandle}
-                // getPopupContainer={n => n.parentNode}
-                placement="bottomRight"
-                okButtonProps={{ style: { padding: 0 } }}
-                cancelButtonProps={{ style: { padding: 0 } }}
-              >
-                <DeleteOutlined
-                  style={{ color: '#fff' }}
-                />
-              </Popconfirm>
-            </div>
-          )}
         </Space>
       </div>
     </>
@@ -181,4 +163,4 @@ function SelectedMask({ containerClassName, offsetContainerClassName }: Props, r
   ), document.querySelector(`.${containerClassName}`)!)
 }
 
-export default forwardRef(SelectedMask);
+export default forwardRef(HoverMask);

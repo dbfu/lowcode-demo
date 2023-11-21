@@ -1,142 +1,17 @@
-import { message } from 'antd';
-import React, { useRef } from 'react';
+import React from 'react';
 import { useComponentConfigStore } from '../../stores/component-config';
+import { setComponentRef } from '../../stores/component-ref';
 import { Component, useComponetsStore } from '../../stores/components';
 import { usePageDataStore } from '../../stores/page-data';
-import { useVariablesStore } from '../../stores/variable';
-import { Node } from '../flow-event/data';
+import { execEventFlow } from '../../utils/action';
 
 
 const ProdStage: React.FC = () => {
 
   const { components } = useComponetsStore();
-  const { variables } = useVariablesStore();
-  const { setData, data } = usePageDataStore();
+  const { data } = usePageDataStore();
   const { componentConfig } = useComponentConfigStore();
 
-  const componentRefs = useRef<any>({});
-
-  const eventHandleMap: any = {
-    ShowMessage: showMessageHandle,
-    ComponentMethod: componentMethodHandle,
-    SetVariable: setVariableHandle,
-    ExecScript: execScriptHandle,
-  };
-
-
-  function getData(key: string) {
-    return data[key] || variables.find(o => o.name === key)?.defaultValue;
-  }
-
-  // 执行脚本
-  async function execScriptHandle(item: any, actionConfig: any) {
-    const { script } = actionConfig || {};
-
-    if (script) {
-      try {
-        // 执行脚本
-        execScript(script);
-
-        // 执行成功后，执行后续成功success事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'success')
-        execEventFlow(nodes);
-      } catch {
-        // 执行失败后，执行后续error事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'error')
-        execEventFlow(nodes);
-      } finally {
-        // 执行后续成功或失败finally事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === "finally")
-        execEventFlow(nodes);
-      }
-    }
-  }
-
-  // 设置变量
-  async function setVariableHandle(item: any, actionConfig: any) {
-    const { variable, value } = actionConfig || {};
-
-    if (variable && value) {
-      try {
-        // 变量设置
-        setData(variable, value);
-
-        // 执行成功后，执行后续成功success事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'success')
-        execEventFlow(nodes);
-      } catch {
-        // 执行失败后，执行后续error事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'error')
-        execEventFlow(nodes);
-      } finally {
-        // 执行后续成功或失败finally事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === "finally")
-        execEventFlow(nodes);
-      }
-    }
-  }
-
-  // 组件方法
-  async function componentMethodHandle(item: any, actionConfig: any, params: any) {
-    const { componentId, method } = actionConfig || {};
-
-    if (componentId && actionConfig) {
-      try {
-        // 执行组件方法
-        await componentRefs.current[componentId][method](params);
-
-        // 执行成功后，执行后续成功success事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'success')
-        execEventFlow(nodes);
-      } catch {
-        // 执行失败后，执行后续error事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'error')
-        execEventFlow(nodes);
-      } finally {
-        // 执行后续成功或失败finally事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === "finally")
-        execEventFlow(nodes);
-      }
-    }
-  }
-
-  // 显示提示
-  function showMessageHandle(item: any, actionConfig: any) {
-    if (actionConfig?.type && actionConfig?.text) {
-      try {
-        if (actionConfig.type === 'success') {
-          message.success(actionConfig.text);
-        } else if (actionConfig.type === 'error') {
-          message.error(actionConfig.text);
-        }
-
-        // 执行成功后，执行后续成功success事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'success');
-        execEventFlow(nodes);
-      } catch {
-        // 执行失败后，执行后续error事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === 'error')
-        execEventFlow(nodes);
-      } finally {
-        // 执行后续成功或失败finally事件
-        const nodes = item.children?.filter((o: any) => o.eventKey === "finally")
-        execEventFlow(nodes);
-      }
-    }
-  }
-
-  // 执行脚本
-  function execScript(script: string) {
-    const func = new Function('ctx', `return ${script}`);
-
-    const ctx = { setData, getComponentRef, getData };
-    return func(ctx)
-  }
-
-  // 获取组件引用
-  function getComponentRef(componentId: number) {
-    return componentRefs.current[componentId];
-  }
 
   // 处理组件props
   function formatProps(component: Component) {
@@ -149,9 +24,8 @@ const ProdStage: React.FC = () => {
             prev[cur] = component.props[cur].value;
           } else if (component.props[cur]?.type === 'variable') {
             const variableName = component.props[cur].value;
-            const variable = variables.find((item) => item.name === variableName);
             // 如果data中有值，则取data中的值。否则取变量的默认值
-            prev[cur] = data[variableName] || variable?.defaultValue;
+            prev[cur] = data[variableName];
           }
         } else {
           prev[cur] = component.props[cur];
@@ -159,43 +33,8 @@ const ProdStage: React.FC = () => {
 
         return prev;
       }, {});
-
     return props;
   }
-
-  /**
-   * 执行事件流
-   * @param nodes 事件流
-   */
-  function execEventFlow(nodes: Node[] = [], params?: any) {
-
-    if (!nodes.length) return;
-
-    nodes.forEach(async item => {
-      // 判断是否是动作节点，如果是动作节点并且条件结果不为false，则执行动作
-      if (item.type === 'action' && item.conditionResult !== false) {
-        // 根据不同动作类型执行不同动作
-        await eventHandleMap[item.config.type](item, item.config.config, params);
-      } else if (item.type === 'condition') {
-        // 如果是条件节点，执行条件脚本，把结果注入到子节点conditionResult属性中
-        const conditionResult = (item.config || []).reduce((prev: any, cur: any) => {
-          const result = execScript(cur.condition);
-          prev[cur.id] = result;
-          return prev;
-        }, {});
-
-        (item.children || []).forEach((c: any) => {
-          c.conditionResult = !!conditionResult[c.conditionId];
-        });
-        // 递归执行子节点事件流
-        execEventFlow(item.children, params);
-      } else if (item.type === 'event') {
-        // 如果是事件节点，执行事件子节点事件流
-        execEventFlow(item.children, params);
-      }
-    })
-  }
-
 
   // 处理事件
   function handleEvent(component: Component) {
@@ -212,10 +51,11 @@ const ProdStage: React.FC = () => {
 
       if (eventConfig) {
         props[event.name] = (params: any) => {
-          eventConfig.children && execEventFlow(eventConfig.children, params);
+          eventConfig.children && execEventFlow(eventConfig.children, params, params);
         }
       }
     })
+
     return props;
   }
 
@@ -223,6 +63,18 @@ const ProdStage: React.FC = () => {
     return components.map((component: Component) => {
 
       if (!componentConfig[component.name]?.prod) {
+        return null;
+      }
+
+      if (component.hidden?.type === 'static' && component.hidden?.value) {
+        return null;
+      }
+
+      if (
+        component.hidden?.type === 'variable'
+        && component.hidden?.value
+        && data[component.hidden.value] === true
+      ) {
         return null;
       }
 
@@ -234,8 +86,10 @@ const ProdStage: React.FC = () => {
         componentConfig[component.name]?.prod,
         {
           key: component.id,
-          id: component.id,
-          ref: (ref) => { componentRefs.current[component.id] = ref; },
+          _id: component.id,
+          _name: component.name,
+          _execEventFlow: execEventFlow,
+          ref: (ref) => { setComponentRef(component.id, ref); },
           ...component.props,
           ...props,
         },
@@ -245,9 +99,8 @@ const ProdStage: React.FC = () => {
     })
   }
 
-
   return (
-    <div className='p-[24px]'>
+    <div>
       <React.Suspense fallback="loading...">
         {renderComponents(components)}
       </React.Suspense>

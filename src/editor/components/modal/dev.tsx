@@ -1,32 +1,15 @@
-import React from 'react';
-import { useDrop } from 'react-dnd';
-import { ItemType } from '../../item-type';
+import { useDrop } from '../../hooks/use-drop';
+import { CommonComponentProps } from '../../interface';
 
 
-const Modal: React.FC<any> = ({ id, children, title }) => {
+function Modal({ _id, _name, children, title }: CommonComponentProps) {
 
-  const [{ canDrop }, drop] = useDrop(() => ({
-    accept: [ItemType.Form, ItemType.Table],
-    drop: (_, monitor) => {
-      const didDrop = monitor.didDrop()
-      if (didDrop) {
-        return;
-      }
-
-      return {
-        id,
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  }));
+  const { canDrop, drop } = useDrop(_id, _name);
 
 
   if (!children?.length) {
     return (
-      <div data-component-id={id} className='p-[10px]'>
+      <div data-component-id={_id} className='p-[10px]'>
         <h4>{title}</h4>
         <div
           ref={drop}
@@ -41,7 +24,7 @@ const Modal: React.FC<any> = ({ id, children, title }) => {
 
 
   return (
-    <div data-component-id={id} className='p-[10px]'>
+    <div data-component-id={_id} className='p-[10px]'>
       <h4>{title}</h4>
       <div
         ref={drop}

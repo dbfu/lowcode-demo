@@ -1,4 +1,4 @@
-import { Button, Collapse, Drawer } from 'antd';
+import { Button, Collapse, Drawer, Space } from 'antd';
 import { useRef, useState } from 'react';
 import { useComponetsStore } from '../../stores/components';
 
@@ -60,12 +60,19 @@ const ComponentEvent = () => {
         zIndex={1005}
         onClose={() => { setOpen(false); }}
         extra={(
-          <Button
-            type='primary'
-            onClick={save}
-          >
-            保存
-          </Button>
+          <Space>
+            <Button
+              type='primary'
+              onClick={save}
+            >
+              保存
+            </Button>
+            <Button
+              onClick={() => { setOpen(false); }}
+            >
+              取消
+            </Button>
+          </Space>
         )}
         push={false}
         destroyOnClose

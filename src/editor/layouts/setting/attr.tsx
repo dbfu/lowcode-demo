@@ -1,49 +1,37 @@
-import { Form, Input, Select } from 'antd';
-import { useEffect } from 'react';
-import SettingFormItemInput from '../../common/setting-form-item/input';
+import { Form, Input } from 'antd';
+import React, { useEffect } from 'react';
+import CommonSetter from '../../common/common-setter';
 import { useComponentConfigStore } from '../../stores/component-config';
 import { useComponetsStore } from '../../stores/components';
-
-
-
+import SettingFormItemCheckbox from '../../common/setting-form-item/checkbox';
+import SettingFormItemSwitch from '../../common/setting-form-item/switch';
 
 const ComponentAttr = () => {
 
   const [form] = Form.useForm();
 
-  const { curComponentId, curComponent, updateComponentProps } = useComponetsStore();
+  const { curComponentId, curComponent, updateComponentProps, updateComponent } = useComponetsStore();
   const { componentConfig } = useComponentConfigStore();
 
   useEffect(() => {
-    console.log(curComponent);
+
+    const data = form.getFieldsValue(true);
+
+
+    const newData = Object.keys(data).reduce((prev: any, key) => {
+      prev[key] = null;
+      return prev;
+    }, {})
+
 
     // 初始化表单
-    form.setFieldsValue(curComponent?.props);
+    form.setFieldsValue({...newData, ...curComponent?.props});
   }, [curComponent])
 
   // 监听表单值变化，更新组件属性
   function valueChange(changeValues: any) {
     if (curComponentId) {
       updateComponentProps(curComponentId, changeValues);
-    }
-  }
-
-  /**
- * 动态渲染表单元素
- * @param setting 元素配置
- * @returns 
- */
-  function renderFormElememt(setting: any) {
-    const { type, options } = setting;
-
-    if (type === 'select') {
-      return (
-        <Select options={options} />
-      )
-    } else if (type === 'input') {
-      return (
-        <SettingFormItemInput />
-      )
     }
   }
 
@@ -62,13 +50,28 @@ const ComponentAttr = () => {
       <Form.Item label="组件名称">
         <Input value={curComponent.name} disabled />
       </Form.Item>
-      {((componentConfig[curComponent?.name])?.setter || []).map((setting: any) => {
-        return (
-          <Form.Item key={setting.name} name={setting.name} label={setting.label}>
-            {renderFormElememt(setting)}
-          </Form.Item>
-        )
-      })}
+      <Form.Item label="组件描述">
+        <Input
+          onChange={e => {
+            updateComponent(curComponentId, 'desc', e.target.value);
+          }}
+          value={curComponent.desc}
+        />
+      </Form.Item>
+      <Form.Item label="隐藏">
+        <SettingFormItemSwitch
+          onChange={value => {
+            updateComponent(curComponentId, 'hidden', value);
+          }}
+          value={curComponent.hidden}
+        />
+      </Form.Item>
+      {componentConfig[curComponent?.name]?.setter && (
+        !Array.isArray(componentConfig[curComponent?.name]?.setter) ?
+          React.createElement(componentConfig[curComponent.name].setter!) : (
+            <CommonSetter setters={componentConfig[curComponent.name].setter} />
+          )
+      )}
     </Form>
   )
 }

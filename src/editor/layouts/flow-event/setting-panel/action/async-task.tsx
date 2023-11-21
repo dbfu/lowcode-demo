@@ -9,13 +9,12 @@ const AsyncTaskSetting = ({ values }: { values: any }) => {
     <>
       <Form.Item label="变量" name={['config', 'variable']}>
         <Select
-          style={{ width: 240 }}
           options={variables.map(variable => ({ label: variable.remark, value: variable.name }))}
         />
       </Form.Item>
       {values?.config?.variable && (
         <Form.Item label="值" name={['config', 'value']}>
-          <Input style={{ width: 240 }} />
+          <Input />
         </Form.Item>
       )}
     </>

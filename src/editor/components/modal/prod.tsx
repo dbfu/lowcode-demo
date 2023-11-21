@@ -1,12 +1,12 @@
 import { Modal as AntdModal } from 'antd';
 import { forwardRef, useImperativeHandle, useState } from 'react';
+import { CommonComponentProps } from '../../interface';
 
-const Modal = ({ children, title, onOk }: any, ref: any) => {
+function Modal({ children, title, onOk, onCancel }: CommonComponentProps, ref: any) {
 
   const [open, setOpen] = useState(false);
 
   const [confirmLoading, setConfirmLoading] = useState(false);
-
 
   useImperativeHandle(ref, () => {
     return {
@@ -31,9 +31,12 @@ const Modal = ({ children, title, onOk }: any, ref: any) => {
       title={title}
       open={open}
       onCancel={() => {
+        onCancel && onCancel();
         setOpen(false);
       }}
-      onOk={onOk}
+      onOk={() => {
+        onOk && onOk();
+      }}
       confirmLoading={confirmLoading}
       destroyOnClose
     >

@@ -9,4 +9,6 @@ export const ItemType = {
   Modal: 'Modal',
   Form: 'Form',
   FormItem: 'FormItem',
+  Page: 'Page',
+  Box: 'Box',
 };

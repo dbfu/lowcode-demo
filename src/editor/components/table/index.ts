@@ -1,10 +1,11 @@
 import {Context} from '../../interface';
+import {ItemType} from '../../item-type';
 import TableDev from './dev';
 import TableProd from './prod';
 
 export default (ctx: Context) => {
-  ctx.registerComponent('Table', {
-    name: 'Table',
+  ctx.registerComponent(ItemType.Table, {
+    name: ItemType.Table,
     desc: '表格',
     defaultProps: {},
     dev: TableDev,
@@ -27,5 +28,6 @@ export default (ctx: Context) => {
       },
     ],
     order: 4,
+    allowDrag: [ItemType.Page, ItemType.Space],
   });
 };

@@ -1,10 +1,11 @@
 import {Context} from '../../interface';
+import {ItemType} from '../../item-type';
 import SpaceDev from './dev';
 import SpaceProd from './prod';
 
 export default (ctx: Context) => {
-  ctx.registerComponent('Space', {
-    name: 'Space',
+  ctx.registerComponent(ItemType.Space, {
+    name: ItemType.Space,
     desc: '间距',
     defaultProps: {
       size: {type: 'static', value: 'middle'},
@@ -33,5 +34,6 @@ export default (ctx: Context) => {
       },
     ],
     order: 1,
+    allowDrag: [ItemType.Page, ItemType.Space],
   });
 };

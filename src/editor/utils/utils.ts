@@ -1,4 +1,5 @@
 import React from 'react';
+import {useComponentConfigStore} from '../stores/component-config';
 import {Component} from '../stores/components';
 
 /**
@@ -24,7 +25,6 @@ export function getComponentById(
   return null;
 }
 
-
 /**
  * 加载远程组件
  *
@@ -32,10 +32,9 @@ export function getComponentById(
  * @returns 组件的默认导出对象
  */
 export async function loadRemoteComponent(url: string) {
-  const script = await fetch(url)
-    .then(res => res.text());
+  const script = await fetch(url).then((res) => res.text());
 
-  const module = { exports: {} };
+  const module = {exports: {}};
   const exports = {};
 
   // 因为上面代码里用到了react，所以要把react注入进去，不然会报错
@@ -43,14 +42,28 @@ export async function loadRemoteComponent(url: string) {
     if (id === 'react') {
       return React;
     }
-  }
+  };
 
-  const process = { env: { NODE_ENV: 'production' } };
+  const process = {env: {NODE_ENV: 'production'}};
 
   const func = new Function('module', 'exports', 'require', 'process', script);
 
   func(module, exports, require, process);
 
-  return { default: module.exports } as any;
+  return {default: module.exports} as any;
 }
 
+/**
+ * 获取组件允许拖入的组件
+ * @param componentName 组件名
+ * @returns
+ */
+export const getAcceptDrop = (componentName: string) => {
+  const {componentConfig} = useComponentConfigStore.getState();
+
+  return (
+    Object.values(componentConfig)
+      .filter((o) => o.allowDrag?.includes(componentName))
+      .map((o) => o.name) || []
+  );
+};

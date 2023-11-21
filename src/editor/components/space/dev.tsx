@@ -1,43 +1,16 @@
 import { Space as AntdSpace } from 'antd';
-import type { SpaceSize } from 'antd/es/space';
-import React from "react";
-import { useDrop } from 'react-dnd';
-import { ItemType } from '../../item-type';
+import { useDrop } from '../../hooks/use-drop';
+import { CommonComponentProps } from '../../interface';
 
-interface Props {
-  // 当前组件的子节点
-  children: any;
-  // 当前组件的id
-  id: number;
-  // 当前组件的尺寸
-  size: SpaceSize;
-  direction: 'horizontal' | 'vertical';
-}
 
-const Space: React.FC<Props> = ({ children, id, size, direction }) => {
+function Space({ children, _id, _name, size, direction }: CommonComponentProps) {
 
-  const [{ canDrop }, drop] = useDrop(() => ({
-    accept: [ItemType.Space, ItemType.Button, ItemType.Table, ItemType.SearchForm],
-    drop: (_, monitor) => {
-      const didDrop = monitor.didDrop()
-      if (didDrop) {
-        return;
-      }
-
-      return {
-        id,
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  }));
+  const { canDrop, drop } = useDrop(_id, _name);
 
   if (!children?.length) {
     return (
       <AntdSpace
-        data-component-id={id}
+        data-component-id={_id}
         ref={drop}
         className='p-[16px]'
         style={{ border: canDrop ? '1px solid #ccc' : 'none', width: direction === 'vertical' ? '100%' : '' }}
@@ -51,7 +24,7 @@ const Space: React.FC<Props> = ({ children, id, size, direction }) => {
     <AntdSpace
       direction={direction}
       size={size}
-      data-component-id={id}
+      data-component-id={_id}
       ref={drop}
       className='p-[16px]'
       style={{ border: canDrop ? '1px solid #ccc' : 'none', width: direction === 'vertical' ? '100%' : '' }}

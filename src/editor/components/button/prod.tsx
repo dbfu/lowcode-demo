@@ -1,7 +1,9 @@
 import { Button as AntdButton } from 'antd';
 import { forwardRef, useImperativeHandle, useState } from 'react';
+import { CommonComponentProps } from '../../interface';
 
-const Button = (props: any, ref: any) => {
+
+const Button = (props: CommonComponentProps, ref: any) => {
 
   const [loading, setLoading] = useState(false);
 

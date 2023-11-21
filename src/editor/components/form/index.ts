@@ -1,29 +1,26 @@
 import {Context} from '../../interface';
+import {ItemType} from '../../item-type';
 import Dev from './dev';
 import Prod from './prod';
 
 export default (ctx: Context) => {
-  ctx.registerComponent('Form', {
-    name: 'Form',
+  ctx.registerComponent(ItemType.Form, {
+    name: ItemType.Form,
     desc: '表单',
     defaultProps: {},
     dev: Dev,
     prod: Prod,
     setter: [
       {
-        name: 'url',
-        label: 'url',
+        name: 'defaultValue',
+        label: '默认值',
         type: 'input',
       },
     ],
     events: [
       {
-        name: 'onSaveSuccess',
-        desc: '保存成功',
-      },
-      {
-        name: 'onSaveFail',
-        desc: '保存失败',
+        name: 'onFinish',
+        desc: '校验成功',
       },
     ],
     methods: [
@@ -33,5 +30,6 @@ export default (ctx: Context) => {
       },
     ],
     order: 6,
+    allowDrag: [ItemType.Page, ItemType.Space, ItemType.Modal],
   });
 };

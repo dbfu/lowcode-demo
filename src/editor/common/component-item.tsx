@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { useComponentConfigStore } from '../stores/component-config';
 
@@ -8,10 +9,12 @@ interface ComponentItemProps {
   description: string,
   // 拖拽结束回调
   onDragEnd: any,
+  // 拖拽中回调
+  onDragging?: () => void,
 }
 
 
-const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDragEnd }) => {
+const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDragEnd, onDragging }) => {
 
   const { componentConfig } = useComponentConfigStore();
 
@@ -37,6 +40,7 @@ const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDrag
       onDragEnd && onDragEnd({
         name,
         props,
+        desc: description,
         ...dropResult,
       });
     },
@@ -45,6 +49,12 @@ const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDrag
       handlerId: monitor.getHandlerId(),
     }),
   }), [name, componentConfig]);
+
+  useEffect(() => {
+    if (onDragging) {
+      onDragging()
+    }
+  }, [onDragging, isDragging]);
 
   const opacity = isDragging ? 0.4 : 1;
 
@@ -62,3 +72,4 @@ const ComponentItem: React.FC<ComponentItemProps> = ({ name, description, onDrag
 }
 
 export default ComponentItem;
+

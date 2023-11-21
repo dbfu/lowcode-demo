@@ -1,11 +1,14 @@
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { Spin } from 'antd';
 import { ComponentConfig } from '../interface';
 import { useComponentConfigStore } from '../stores/component-config';
+import { clearComponentRef } from '../stores/component-ref';
 import { useComponetsStore } from '../stores/components';
+import { usePageDataStore } from '../stores/page-data';
+import { useVariablesStore } from '../stores/variable';
 import Header from './header';
 import Material from './material';
 import Setting from './setting';
@@ -17,8 +20,11 @@ const Layout: React.FC = () => {
   const { mode } = useComponetsStore();
   const { setComponentConfig } = useComponentConfigStore();
   const [loading, setLoading] = useState(true);
+  const { mergeData } = usePageDataStore();
+  const { variables } = useVariablesStore();
 
-  const componentConfigRef = React.useRef<any>({});
+  const componentConfigRef = useRef<any>({});
+  const editStageRef = useRef<any>(null);
 
   // 注册组件
   function registerComponent(name: string, componentConfig: ComponentConfig) {
@@ -27,6 +33,12 @@ const Layout: React.FC = () => {
 
   // 加载组件配置
   async function loadComponentConfig() {
+    // 初始化变量到全局数据中
+    mergeData(variables.reduce((prev: any, variable) => {
+      prev[variable.name] = variable.defaultValue;
+      return prev;
+    }, {}));
+
     // 加载组件配置模块代码
     const modules = import.meta.glob('../components/*/index.ts', { eager: true });
 
@@ -46,8 +58,13 @@ const Layout: React.FC = () => {
 
 
   useEffect(() => {
+    clearComponentRef();
     loadComponentConfig();
   }, []);
+
+  function onDragging() {
+    editStageRef.current?.updateSelectedMaskPosition();
+  }
 
 
   if (loading) {
@@ -66,10 +83,10 @@ const Layout: React.FC = () => {
       {mode === 'edit' ? (
         <Allotment>
           <Allotment.Pane preferredSize={240} maxSize={400} minSize={200}>
-            <Material />
+            <Material onDragging={onDragging} />
           </Allotment.Pane>
           <Allotment.Pane>
-            <EditStage />
+            <EditStage ref={editStageRef} />
           </Allotment.Pane>
           <Allotment.Pane preferredSize={300} maxSize={500} minSize={300}>
             <Setting />

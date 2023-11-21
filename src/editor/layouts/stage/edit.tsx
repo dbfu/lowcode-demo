@@ -1,17 +1,29 @@
-import React, { useEffect, useRef } from 'react';
-import { useDrop } from 'react-dnd';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import HoverMask from '../../common/hover-mask';
 import SelectedMask from '../../common/selected-mask';
-import { ItemType } from '../../item-type';
 import { useComponentConfigStore } from '../../stores/component-config';
 import { Component, useComponetsStore } from '../../stores/components';
 
 
-const EditStage: React.FC = () => {
+const EditStage = (_: any, ref: any) => {
 
   const { components, curComponentId, setCurComponentId } = useComponetsStore();
   const { componentConfig } = useComponentConfigStore();
 
+  const [hoverComponentId, setHoverComponentId] = useState();
+
+
   const selectedMaskRef = useRef<any>(null);
+
+  useImperativeHandle(ref, () => {
+    return {
+      updateSelectedMaskPosition: () => {
+        if (selectedMaskRef?.current) {
+          selectedMaskRef.current.updatePosition();
+        }
+      }
+    }
+  }, [])
 
   // 组件改变后，重新渲染遮罩
   useEffect(() => {
@@ -24,14 +36,14 @@ const EditStage: React.FC = () => {
     function createMask(e: any) {
       // 获取当前点击的元素
       const path = e.composedPath();
+
       for (let i = 0; i < path.length; i += 1) {
         const ele = path[i];
-        if (ele.getAttribute) {
-          if (ele.getAttribute("data-component-id")) {
-            const componentId = ele.getAttribute("data-component-id");
-            setCurComponentId(componentId);
-            return;
-          }
+        if (ele.getAttribute && ele.getAttribute("data-component-id")) {
+          const componentId = ele.getAttribute("data-component-id");
+          setCurComponentId(componentId);
+          setHoverComponentId(undefined);
+          return;
         }
       }
     }
@@ -49,6 +61,47 @@ const EditStage: React.FC = () => {
     }
   }, []);
 
+
+  useEffect(() => {
+    function createMask(e: any) {
+      // 获取当前点击的元素
+      const path = e.composedPath();
+
+      for (let i = 0; i < path.length; i += 1) {
+        const ele = path[i];
+        if (ele.getAttribute && ele.getAttribute("data-component-id")) {
+          const componentId = ele.getAttribute("data-component-id");
+          if (componentId) {
+            if (curComponentId === componentId) {
+              setHoverComponentId(undefined);
+            } else {
+              setHoverComponentId(componentId);
+            }
+            return;
+          }
+        }
+      }
+    }
+
+    function removerMask() {
+      setHoverComponentId(undefined);
+    }
+
+    let container = document.querySelector(".stage");
+
+    if (container) {
+      container.addEventListener('mouseover', createMask, true);
+      container.addEventListener('mouseleave', removerMask);
+    }
+    return () => {
+      container = document.querySelector(".stage");
+      if (container) {
+        container.removeEventListener("mouseover", createMask, true);
+        container.removeEventListener('mouseleave', removerMask);
+      }
+    }
+  }, [curComponentId]);
+
   function formatProps(component: Component) {
     const props = Object.keys(component.props || {}).reduce<any>((prev, cur) => {
 
@@ -56,9 +109,7 @@ const EditStage: React.FC = () => {
         if (component.props[cur]?.type === 'static') {
           prev[cur] = component.props[cur].value;
         } else if (component.props[cur]?.type === 'variable') {
-
           const variableName = component.props[cur].value;
-
           prev[cur] = `\${${variableName}}`;
         }
       } else {
@@ -85,8 +136,8 @@ const EditStage: React.FC = () => {
         componentConfig[component.name]?.dev,
         {
           key: component.id,
-          id: component.id,
-          "data-component-id": component.id,
+          _id: component.id,
+          _name: component.name,
           ...component.props,
           ...props,
         },
@@ -95,48 +146,24 @@ const EditStage: React.FC = () => {
     })
   }
 
-  // 如果拖拽的组件是可以放置的，canDrop则为true，通过这个可以给组件添加边框
-  const [{ canDrop }, drop] = useDrop(() => ({
-    // 可以接受的元素类型
-    accept: [
-      ItemType.Space,
-      ItemType.Button,
-      ItemType.RemoteComponent,
-      ItemType.Table,
-      ItemType.SearchForm,
-      ItemType.Modal,
-      ItemType.Form,
-    ],
-    drop: (_, monitor) => {
-      const didDrop = monitor.didDrop()
-      if (didDrop) {
-        return;
-      }
-
-      return {
-        id: 0,
-      }
-    },
-    collect: (monitor) => ({
-      canDrop: monitor.canDrop(),
-    }),
-  }));
-
-
-  console.log(components, 'components');
-
-
   return (
-    <div ref={drop} style={{ border: canDrop ? '1px solid blue' : 'none' }} className='p-[24px] h-[100%] stage'>
+    <div className='h-[100%] stage'>
       <React.Suspense fallback="loading...">
         {renderComponents(components)}
       </React.Suspense>
       {curComponentId && (
         <SelectedMask
-          componentId={curComponentId}
           containerClassName='select-mask-container'
           offsetContainerClassName='stage'
           ref={selectedMaskRef}
+        />
+      )}
+      {hoverComponentId && (
+        <HoverMask
+          containerClassName='select-mask-container'
+          offsetContainerClassName='stage'
+          ref={selectedMaskRef}
+          componentId={hoverComponentId}
         />
       )}
       <div className="select-mask-container" />
@@ -144,4 +171,4 @@ const EditStage: React.FC = () => {
   )
 }
 
-export default EditStage;
+export default forwardRef(EditStage);
