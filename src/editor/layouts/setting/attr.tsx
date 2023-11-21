@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import CommonSetter from '../../common/common-setter';
 import { useComponentConfigStore } from '../../stores/component-config';
 import { useComponetsStore } from '../../stores/components';
-import SettingFormItemCheckbox from '../../common/setting-form-item/checkbox';
 import SettingFormItemSwitch from '../../common/setting-form-item/switch';
 
 const ComponentAttr = () => {
