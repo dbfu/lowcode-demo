@@ -21,7 +21,21 @@ function Form({
   }, [form]);
 
   useEffect(() => {
-    form.setFieldsValue(defaultValue);
+
+    if (defaultValue) {
+      const data: any = {};
+    React.Children.toArray(children).forEach((item: any) => {
+      if (item.props.type === 'date') {
+        data[item.props.name] = dayjs(defaultValue[item.props.name]);
+      } else {
+        data[item.props.name] = defaultValue[item.props.name];
+      }
+    });
+
+    form.setFieldsValue(data);
+    }
+
+    
   }, [defaultValue]);
 
   const searchItems = useMemo(() => {

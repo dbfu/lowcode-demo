@@ -210,26 +210,27 @@ async function setVariableHandle(
 async function componentMethodHandle(
   item: any,
   actionConfig: any,
-  params: any
+  eventData: any,
+  initEventData: any
 ) {
   const {componentId, method} = actionConfig || {};
 
   if (componentId && actionConfig) {
     try {
       // 执行组件方法
-      await getComponentRef(componentId)[method](params);
+      await getComponentRef(componentId)[method](eventData);
 
       // 执行成功后，执行后续成功success事件
       const nodes = item.children?.filter((o: any) => o.eventKey === 'success');
-      execEventFlow(nodes);
+      execEventFlow(nodes, eventData, initEventData);
     } catch {
       // 执行失败后，执行后续error事件
       const nodes = item.children?.filter((o: any) => o.eventKey === 'error');
-      execEventFlow(nodes);
+      execEventFlow(nodes, eventData, initEventData);
     } finally {
       // 执行后续成功或失败finally事件
       const nodes = item.children?.filter((o: any) => o.eventKey === 'finally');
-      execEventFlow(nodes);
+      execEventFlow(nodes, eventData, initEventData);
     }
   }
 }
